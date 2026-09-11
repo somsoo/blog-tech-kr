@@ -1,7 +1,8 @@
-name: Auto Publish
+name: Auto Publish (Expert 3-Pass Grounded)
+
 on:
   schedule:
-    - cron: '40 0,8,16 * * *'
+    - cron: '57 22,4,11 * * *'
   workflow_dispatch:
 
 permissions:
@@ -12,14 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install google-generativeai requests pillow python-dotenv beautifulsoup4
+
       - name: Run Auto Poster (With Auto-Retry)
         uses: nick-fields/retry@v3
         with:
@@ -29,11 +33,12 @@ jobs:
           command: python auto_poster.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add _posts/ assets/ posted_history.txt
+          git add _posts/ assets/ posted_history.txt POST_LOG.md || true
           git commit -m "docs: auto-generate fact-grounded post" || echo "No changes to commit"
           for i in 1 2 3; do
             git pull --rebase origin main || true
