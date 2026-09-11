@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: 'ko' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title and page.title != site.title %}{{ page.title | escape }} | {{ site.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
+
+  <!-- SEO Meta Tags -->
+  {% assign meta_desc = page.description | default: page.excerpt | default: site.description | strip_html | strip_newlines | truncate: 160 %}
+  <meta name="description" content="{{ meta_desc | escape }}">
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta property="og:title" content="{% if page.title and page.title != site.title %}{{ page.title | escape }} | {{ site.title | escape }}{% else %}{{ site.title | escape }}{% endif %}">
+  <meta property="og:description" content="{{ meta_desc | escape }}">
+  <meta property="og:site_name" content="{{ site.title | escape }}">
+  {% if page.image %}
+  <meta property="og:image" content="{{ page.image | absolute_url }}">
+  {% endif %}
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="{{ page.url | absolute_url }}">
+  <meta name="twitter:title" content="{% if page.title and page.title != site.title %}{{ page.title | escape }} | {{ site.title | escape }}{% else %}{{ site.title | escape }}{% endif %}">
+  <meta name="twitter:description" content="{{ meta_desc | escape }}">
+  {% if page.image %}
+  <meta name="twitter:image" content="{{ page.image | absolute_url }}">
+  {% endif %}
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2228289204702106" crossorigin="anonymous"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+  <!-- Schema.org JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {% if page.layout == 'post' %}
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": {{ page.title | jsonify }},
+    "description": {{ meta_desc | jsonify }},
+    "datePublished": {{ page.date | date_to_xmlschema | jsonify }},
+    "dateModified": {{ page.last_modified_at | default: page.date | date_to_xmlschema | jsonify }},
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": {{ page.url | absolute_url | jsonify }}
+    },
+    "author": {
+      "@type": "Organization",
+      "name": {{ site.title | jsonify }},
+      "url": {{ site.url | jsonify }}
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": {{ site.title | jsonify }},
+      "url": {{ site.url | jsonify }}
+    }{% if page.image %},
+    "image": {{ page.image | absolute_url | jsonify }}
+    {% endif %}
+  }
+  {% else %}
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": {{ site.title | jsonify }},
+    "url": {{ site.url | jsonify }},
+    "description": {{ site.description | jsonify }}
+  }
+  {% endif %}
+  </script>
+
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    
+    body { font-family: 'Pretendard', sans-serif; }
+    
+    /* 본문 가독성 최적화 */
+    .prose p {
+        margin-bottom: 1.25em !important;
+        line-height: 1.75 !important;
+        word-break: keep-all;
+    }
+    .prose h1, .prose h2, .prose h3 {
+        margin-top: 1.5em !important;
+        margin-bottom: 0.5em !important;
+        word-break: keep-all;
+    }
+    .prose > :first-child {
+        margin-top: 0 !important;
+    }
+    .prose img { 
+        border-radius: 0.75rem; 
+        max-height: 500px; 
+        width: 100%; 
+        object-fit: cover; 
+        aspect-ratio: 16/9; 
+        margin-top: 1.5em; 
+        margin-bottom: 1.5em; 
+    }
+
+    /* 애드센스 및 광고 컨테이너 중앙 정렬 + 좌우 반응형 가득 채우기 */
+    .manual-ad-container {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        margin: 30px auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        clear: both !important;
+        overflow: hidden !important;
+    }
+    .manual-ad-container ins.adsbygoogle {
+        display: block !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        min-width: 280px !important;
+    }
+    .manual-ad-container ins.adsbygoogle iframe {
+        margin: 0 auto !important;
+        display: block !important;
+    }
+
+    /* 모바일/PC 반응형 소제목 글자 크기 최적화 */
+    .prose h2 {
+        font-size: 1.25rem !important;
+        margin-top: 1.5em !important;
+        margin-bottom: 0.75em !important;
+        word-break: keep-all;
+    }
+    @media (min-width: 768px) {
+        .prose h2 { font-size: 1.5rem !important; }
+    }
+    .prose h3 {
+        font-size: 1.1rem !important;
+        margin-top: 1.25em !important;
+        margin-bottom: 0.5em !important;
+        word-break: keep-all;
+    }
+    @media (min-width: 768px) {
+        .prose h3 { font-size: 1.25rem !important; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased pt-16 flex flex-col min-h-screen">
+  <!-- Sticky Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <a href="{{ '/' | relative_url }}" class="text-lg sm:text-xl font-bold text-gray-900 tracking-tight truncate mr-2">{{ site.title | escape }}</a>
+      <nav class="flex items-center space-x-3 sm:space-x-5 shrink-0 text-sm font-semibold">
+        <a href="{{ '/' | relative_url }}" class="text-gray-700 hover:text-blue-600 transition">전체 글</a>
+        <a href="{{ '/guide/' | relative_url }}" class="text-blue-600 hover:text-blue-800 transition font-bold">실전 가이드</a>
+        <a href="{{ '/about/' | relative_url }}" class="text-gray-700 hover:text-blue-600 transition">소개</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow">
+    {{ content }}
+  </main>
+
+  <!-- Modern Trust Footer -->
+  <footer class="bg-white border-t border-gray-200 py-10 text-center text-sm text-gray-500 mt-12">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4 text-xs font-semibold text-gray-600">
+        <a href="{{ '/guide/' | relative_url }}" class="text-blue-600 hover:text-blue-800 transition font-bold">실전 가이드</a>
+        <span class="text-gray-300">|</span>
+        <a href="{{ '/about/' | relative_url }}" class="hover:text-blue-600 transition">사이트 소개</a>
+        <span class="text-gray-300">|</span>
+        <a href="{{ '/terms/' | relative_url }}" class="hover:text-blue-600 transition">이용약관</a>
+        <span class="text-gray-300">|</span>
+        <a href="{{ '/privacy/' | relative_url }}" class="hover:text-blue-600 transition">개인정보처리방침</a>
+        <span class="text-gray-300">|</span>
+        <a href="{{ '/disclaimer/' | relative_url }}" class="hover:text-blue-600 transition">제휴 공시 및 면책조항</a>
+      </div>
+      <p class="text-xs text-gray-400 mb-2 max-w-2xl mx-auto leading-relaxed">
+        본 사이트의 모든 콘텐츠는 정보 제공 및 참고 목적으로 작성되었으며, 최종 선택과 결정에 대한 책임은 이용자 본인에게 있습니다.
+      </p>
+      <p class="text-xs text-gray-400">&copy; {{ site.time | date: '%Y' }} {{ site.title }}. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

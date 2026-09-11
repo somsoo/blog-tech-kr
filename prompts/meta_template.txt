@@ -1,0 +1,11 @@
+다음 "{keyword}" 분석 보고서를 검토하고 오직 유효한 JSON 객체 하나만 반환하세요:
+
+{
+  "title": "검색 유입을 극대화하는 신뢰도 높은 45자 이내의 한글 블로그 제목",
+  "thumb_hook": "썸네일용 2줄짜리 짧고 강력한 핵심 문구 (줄바꿈 \n 포함)",
+  "vibe_keywords": "픽사베이 이미지 검색용 영문 단어 1~2개 (예: finance, hospital, house, coding)",
+  "meta_description": "검색 스니펫용 120자 이내의 핵심 요약문"
+}
+
+[ARTICLE DRAFT]
+{draft_text}

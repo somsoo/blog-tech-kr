@@ -1,0 +1,36 @@
+﻿---
+layout: default
+---
+<div class="mb-10 text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">
+    <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ site.title }}</h1>
+    <p class="text-gray-500">{{ site.description }}</p>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for post in site.posts %}
+  <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col group">
+    <a href="{{ post.url | relative_url }}" class="block relative w-full aspect-video bg-gray-100 overflow-hidden">
+      {% if post.image %}
+        <img src="{{ post.image | relative_url }}" alt="{{ post.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+      {% else %}
+        <!-- 湲곕낯 ?몃꽕???대갚 -->
+        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-200 text-gray-400 font-bold transition-transform duration-500 group-hover:scale-105">
+          Read Post
+        </div>
+      {% endif %}
+    </a>
+    <div class="p-6 flex-1 flex flex-col">
+      <h2 class="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+        <a href="{{ post.url | relative_url }}" class="hover:text-blue-600 transition">{{ post.title | escape }}</a>
+      </h2>
+      <p class="text-sm text-gray-500 line-clamp-3 mb-4 flex-1">
+        {{ post.excerpt | strip_html | truncatewords: 20 }}
+      </p>
+      <div class="text-xs text-gray-400 mt-auto font-medium">
+        {{ post.date | date: "%Y-%m-%d" }}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+

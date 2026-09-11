@@ -1,0 +1,22 @@
+---
+layout: default
+---
+<article class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 md:p-12 lg:p-16 mt-6">
+  <header class="mb-8 text-center">
+    <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 leading-tight mb-4">{{ page.title | escape }}</h1>
+    <div class="text-gray-400 text-sm font-medium">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y-%m-%d" }}</time>
+    </div>
+  </header>
+
+  {% if page.image %}
+  <div class="w-full aspect-video rounded-xl overflow-hidden mb-10 bg-gray-100 shadow-inner">
+    <img src="{{ page.image | relative_url }}" class="w-full h-full object-cover" alt="Hero Image">
+  </div>
+  {% endif %}
+
+  <!-- 본문 영역 -->
+  <div class="prose prose-blue prose-base md:prose-lg max-w-none text-gray-700 leading-relaxed">
+    {{ content }}
+  </div>
+</article>
