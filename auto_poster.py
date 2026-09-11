@@ -140,7 +140,11 @@ def generate_post(keyword, source_text):
         check_result = fact_checker.verify_facts(draft, source_text, threshold=0.60)
         print(f"Re-check result: Passed={check_result['passed']}, Match Rate={int(check_result['match_rate']*100)}%")
 
-    # 클린업
+    # 클린업 및 AI 티 제거 정제 필터
+    draft = re.sub(r'^#\s+(.+)$', r'## \1', draft, flags=re.MULTILINE)
+    draft = re.sub(r'^(?:하하[!,~]?\s*|자,\s*그럼\s*|현대\s*사회[는에서]?\s*)', '', draft, flags=re.MULTILINE)
+    draft = re.sub(r'\[(?:\d+단계|[가-힣\s]+체크리스트|[가-힣\s]+절차)\]', r'### 핵심 이용 절차 및 확인사항', draft)
+    draft = re.sub(r'\[(?:Actionable|Key Takeaway|Checklist)[^\]]*\]', r'### Strategic Action Framework', draft, flags=re.IGNORECASE)
     draft = re.sub(r'(?i)^(?:#+\s*)?H[23]:\s*', '', draft, flags=re.MULTILINE)
     draft = re.sub(r'^---.*?---\s*', '', draft, flags=re.DOTALL)
 
@@ -178,7 +182,8 @@ def generate_post(keyword, source_text):
             v_path = download_vibe_image(image_urls[img_idx], f"vibe_{int(time.time())}_{img_idx}")
             img_idx += 1
         if v_path:
-            processed_text += f"\n<br>\n![Market Chart]({{{{ '/' | append: '{v_path}' | relative_url }}}})\n<br>\n"
+            alt_text = f"{keyword} 핵심 분석 인포그래픽 {img_idx}"
+            processed_text += f"\n\n![{alt_text}]({{{{ '/' | append: '{v_path}' | relative_url }}}})\n\n"
         processed_text += part
 
     # 썸네일 생성
@@ -188,7 +193,7 @@ def generate_post(keyword, source_text):
     # 하단 팩트 검증 출처 고지문 (E-E-A-T 강화)
     attribution_notice = """
 <div style="margin: 35px 0; padding: 16px 20px; border-left: 4px solid #3b82f6; background-color: #f8fafc; font-size: 13px; color: #475569; line-height: 1.6;">
-    <strong>Data Integrity & Attribution:</strong> This analytical report is curated from public central bank announcements, institutional market disclosures, and verified news feeds. Factual figures and metrics are validated via automated factual consistency checks.
+    <strong>데이터 무결성 및 공공 정보 공시:</strong> 본 분석 리포트는 각 기관의 공식 발표 자료, 공개 통계 데이터 및 정책 공시문을 기반으로 사실 관계 검증을 거쳐 작성되었습니다.
 </div>
 """
     ad_bottom = '\n<div class="manual-ad-container" style="margin: 30px 0; text-align: center;">\n<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2228289204702106" data-ad-slot="2231432699" data-ad-format="auto" data-full-width-responsive="true"></ins>\n<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>\n</div>\n'
@@ -206,7 +211,10 @@ def main():
 
     if post_content:
         date_str = datetime.now().strftime('%Y-%m-%d')
-        safe_title = re.sub(r'[^a-zA-Z0-9\-]', '', keyword.replace(' ', '-')).lower()
+        clean_kw = re.sub(r'[^a-zA-Z0-9가-힣\s\-]', '', keyword).strip()
+        safe_title = re.sub(r'[\s\-]+', '-', clean_kw).strip('-').lower()
+        if not safe_title or safe_title == '-':
+            safe_title = f"post-{int(time.time())}"
         filename = f'_posts/{date_str}-{safe_title}.md'
         os.makedirs('_posts', exist_ok=True)
         
