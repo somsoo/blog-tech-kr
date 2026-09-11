@@ -25,19 +25,15 @@ jobs:
           sudo apt-get update && sudo apt-get install -y fonts-nanum fonts-roboto
           pip install google-generativeai requests pytz pillow beautifulsoup4
 
-      - name: Run Auto Poster
+      - name: Run Auto Poster (With Auto-Retry)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: python auto_poster.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          for i in 1 2 3; do
-            echo "Attempt $i to run auto_poster.py..."
-            python auto_poster.py && break || {
-              if [ $i -eq 3 ]; then echo "Auto poster failed after 3 attempts"; exit 1; fi
-              echo "Failed, retrying in 15 seconds..."
-              sleep 15
-            }
-          done
-
       - name: Commit and Push
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
