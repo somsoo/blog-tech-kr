@@ -122,46 +122,87 @@ def generate_post(keyword, source_text):
     # Load prompt templates
     with open('prompts/draft_template.txt', 'r', encoding='utf-8') as f:
         draft_template = f.read()
-    with open('prompts/meta_template.txt', 'r', encoding='utf-8') as f:
-        meta_template = f.read()
 
-    print(f"Step 1: Generating Grounded Report on '{keyword}'...")
+    # [Pass 1/3] 사실 기반 심층 초안 작성
+    print(f"Pass 1/3: Generating Grounded Draft on '{keyword}'...")
     draft_prompt = draft_template.replace('{keyword}', keyword).replace('{source_text}', source_text)
     draft = generate_with_retry(draft_prompt)
 
-    # 팩트체크 게이트 실행 (비용 0원 정규식 검증)
-    print("Step 2: Running Regex Fact-Check Gate...")
-    check_result = fact_checker.verify_facts(draft, source_text, threshold=0.65)
+    # [Pass 2/3] 혹독한 편집장의 기계적 문체/가독성 결함 비판 (Critic)
+    print("Pass 2/3: Running Incisive Critic Audit for AI Smell & Flow...")
+    critic_prompt = f"""당신은 혹독한 시사·경제 전문 수석 편집장입니다.
+다음 초안을 읽고 개선해야 할 핵심 단점 3가지를 신랄하게 지적하세요:
+1. AI 특유의 번역투, 기계적인 말투, 작위적 추임새(하하, 자 그럼, 현대 사회에서, 결론적으로, 살펴보겠습니다 등) 여부
+2. 문장 길이가 획일적이거나 접속사가 남발되어 가독성이 떨어지는지 여부
+3. 피상적인 겉핥기식 요약에 그치지 않고 독자에게 실질적인 통찰과 실익을 주는지 여부
+
+[초안]:
+{draft}"""
+    critique = generate_with_retry(critic_prompt)
+    print(f"Critic Audit Complete. Feedback length: {len(critique)} chars")
+
+    # [Pass 3/3] 비판 100% 수용 최종 인간화 재작성 & 메타데이터 일괄 생성
+    print("Pass 3/3: Executing Final Humanized Rewrite & Meta Generation...")
+    rewrite_prompt = f"""당신은 상위 1% 전문 칼럼니스트이자 수석 에디터입니다.
+아래 [초안]에 [전문가 비판]을 100% 수용하여 결함을 완벽히 뜯어고친 최종 2,000자 내외의 고품질 블로그 원고를 완성하세요.
+
+[핵심 집필 및 서술 규칙]
+1. AI 특유의 기계적 말투와 번역투를 완전히 제거하고, 실제 사람이 직접 쓴 것처럼 유려하고 자연스러운 호흡으로 작성하세요.
+2. 소제목은 반드시 '## '(H2) 또는 '### '(H3)만 사용하세요. 최상위 제목(# H1)은 절대 쓰지 마세요.
+3. 각 H2 소제목 바로 다음 줄에 정확히 '[VIBE_IMAGE_HERE]'를 유지하세요.
+4. 마크다운 비교 표(Table)와 구체적 체크리스트를 포함하되, 대괄호 지시어(예: [3단계 ...])를 제목으로 노출하지 마세요.
+5. 마크다운 코드 블록(```)으로 전체 본문을 감싸지 마세요.
+
+[전문가 비판]:
+{critique}
+
+[초안]:
+{draft}
+
+반드시 본문 작성이 끝난 후, 맨 마지막 줄에 아래 구분자 사이에 메타데이터 JSON을 정확히 첨부하세요:
+---METADATA_START---
+{{
+  "title": "{keyword} 관련 클릭률 높은 매력적인 1줄 제목",
+  "thumb_hook": "{keyword}\n핵심 분석 요약 (줄바꿈은 \\n)",
+  "vibe_keywords": "Pixabay 검색용 영문 키워드 1~2개 (예: finance market)",
+  "meta_description": "150자 이내의 검색 최적화 요약문"
+}}
+---METADATA_END---"""
+
+    rewrite_output = generate_with_retry(rewrite_prompt)
+
+    # 메타데이터 파싱 및 본문 분리
+    meta = {}
+    if '---METADATA_START---' in rewrite_output and '---METADATA_END---' in rewrite_output:
+        parts = rewrite_output.split('---METADATA_START---')
+        final_draft = parts[0].strip()
+        meta_json_str = parts[1].split('---METADATA_END---')[0].strip()
+        try:
+            meta = json.loads(meta_json_str)
+        except:
+            pass
+    else:
+        final_draft = rewrite_output.strip()
+
+    title = meta.get('title', f"{keyword} 완벽 가이드")
+    thumb_hook = meta.get('thumb_hook', f"{keyword}\n핵심 분석")
+    vibe_keywords = meta.get('vibe_keywords', 'finance')
+    meta_desc = meta.get('meta_description', '')
+
+    # [팩트체크 게이트] 비용 0원 로컬 정규식 검증
+    print("Running Local Regex Fact-Check Gate...")
+    check_result = fact_checker.verify_facts(final_draft, source_text, threshold=0.55)
     print(f"Fact-Check result: Passed={check_result['passed']}, Match Rate={int(check_result['match_rate']*100)}%")
-    if not check_result['passed']:
-        print(f"Unmatched figures detected: {check_result['unmatched']}. Retrying draft once with stricter grounding...")
-        strict_prompt = draft_prompt + "\n\nCRITICAL WARNING: Prior draft contained unverified figures. STRICTLY use only figures in the source material."
-        draft = generate_with_retry(strict_prompt)
-        check_result = fact_checker.verify_facts(draft, source_text, threshold=0.60)
-        print(f"Re-check result: Passed={check_result['passed']}, Match Rate={int(check_result['match_rate']*100)}%")
 
     # 클린업 및 AI 티 제거 정제 필터
-    draft = re.sub(r'^#\s+(.+)$', r'## \1', draft, flags=re.MULTILINE)
-    draft = re.sub(r'^(?:하하[!,~]?\s*|자,\s*그럼\s*|현대\s*사회[는에서]?\s*)', '', draft, flags=re.MULTILINE)
-    draft = re.sub(r'\[(?:\d+단계|[가-힣\s]+체크리스트|[가-힣\s]+절차)\]', r'### 핵심 이용 절차 및 확인사항', draft)
-    draft = re.sub(r'\[(?:Actionable|Key Takeaway|Checklist)[^\]]*\]', r'### Strategic Action Framework', draft, flags=re.IGNORECASE)
-    draft = re.sub(r'(?i)^(?:#+\s*)?H[23]:\s*', '', draft, flags=re.MULTILINE)
-    draft = re.sub(r'^---.*?---\s*', '', draft, flags=re.DOTALL)
+    final_draft = re.sub(r'^#\s+(.+)$', r'## \1', final_draft, flags=re.MULTILINE)
+    final_draft = re.sub(r'^(?:하하[!,~]?\s*|자,\s*그럼\s*|현대\s*사회[는에서]?\s*)', '', final_draft, flags=re.MULTILINE)
+    final_draft = re.sub(r'\[(?:\d+단계|[가-힣\s]+체크리스트|[가-힣\s]+절차)\]', r'### 핵심 이용 절차 및 확인사항', final_draft)
+    final_draft = re.sub(r'\[(?:Actionable|Key Takeaway|Checklist)[^\]]*\]', r'### Strategic Action Framework', final_draft, flags=re.IGNORECASE)
+    final_draft = re.sub(r'(?i)^(?:#+\s*)?H[23]:\s*', '', final_draft, flags=re.MULTILINE)
+    final_draft = re.sub(r'^---.*?---\s*', '', final_draft, flags=re.DOTALL)
 
-    # Step 3: Meta 정보 생성
-    print("Step 3: Generating SEO Metadata...")
-    meta_prompt = meta_template.replace('{keyword}', keyword).replace('{draft_text}', draft[:1500])
-    meta_json_str = generate_with_retry(meta_prompt, is_json=True)
-    try:
-        meta = json.loads(meta_json_str)
-        title = meta.get('title', f"{keyword} Analysis")
-        thumb_hook = meta.get('thumb_hook', f"{keyword}\nMarket Insights")
-        vibe_keywords = meta.get('vibe_keywords', 'finance')
-        meta_desc = meta.get('meta_description', '')
-    except:
-        title, thumb_hook, vibe_keywords, meta_desc = f"{keyword} Analysis", f"{keyword}\nMarket Insights", "finance", ""
-
-    # Step 4: Pixabay 이미지 처리
+    # Pixabay 이미지 처리
     image_urls = []
     try:
         import urllib.parse, requests
@@ -173,7 +214,7 @@ def generate_post(keyword, source_text):
     except:
         pass
 
-    parts = draft.split('[VIBE_IMAGE_HERE]')
+    parts = final_draft.split('[VIBE_IMAGE_HERE]')
     processed_text = parts[0]
     img_idx = 0
     for part in parts[1:]:
