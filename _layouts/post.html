@@ -10,13 +10,54 @@ layout: default
   </header>
 
   {% if page.image %}
-  <div class="w-full aspect-video rounded-xl overflow-hidden mb-10 bg-gray-100 shadow-inner">
+  <div class="w-full aspect-video rounded-xl overflow-hidden mb-8 bg-gray-100 shadow-inner">
     <img src="{{ page.image | relative_url }}" class="w-full h-full object-cover" alt="Hero Image">
   </div>
   {% endif %}
+
+  <!-- 본문 상단 수동 광고 (Top Ad) -->
+  <div class="manual-ad-container mb-8 text-center">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-2228289204702106"
+         data-ad-slot="2231432699"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
 
   <!-- 본문 영역 -->
   <div class="prose prose-blue prose-base md:prose-lg max-w-none text-gray-700 leading-relaxed">
     {{ content }}
   </div>
 </article>
+
+<!-- 본문 중간 및 하단 광고 지능형 자동 배치 스크립트 -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var articleBody = document.querySelector(".prose");
+  if (!articleBody) return;
+
+  var hasOriginalBottomAd = articleBody.querySelectorAll(".manual-ad-container").length > 0;
+
+  // 1. 중간 광고 (Mid Ad): 본문 2번째 소제목(h2) 바로 앞 자동 배치
+  var h2Elements = articleBody.querySelectorAll("h2");
+  if (h2Elements.length >= 2) {
+    var targetH2 = h2Elements[1];
+    var midAd = document.createElement("div");
+    midAd.className = "manual-ad-container my-8 text-center";
+    midAd.innerHTML = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2228289204702106" data-ad-slot="2231432699" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+    targetH2.parentNode.insertBefore(midAd, targetH2);
+    try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }
+
+  // 2. 하단 광고 (Bottom Ad): 본문에 기존 광고가 없는 경우 자동 추가 보장
+  if (!hasOriginalBottomAd) {
+    var bottomAd = document.createElement("div");
+    bottomAd.className = "manual-ad-container my-8 text-center";
+    bottomAd.innerHTML = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2228289204702106" data-ad-slot="2231432699" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+    articleBody.appendChild(bottomAd);
+    try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }
+});
+</script>

@@ -1,9 +1,20 @@
-﻿---
+---
 layout: default
 ---
 <div class="mb-8 text-center px-4 py-8 sm:py-12 md:py-14 bg-white rounded-2xl shadow-sm border border-gray-100">
     <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight leading-tight px-2">{{ site.title }}</h1>
     <p class="text-sm sm:text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed px-4">{{ site.description }}</p>
+</div>
+
+<!-- 홈 화면 상단 피드 광고 (Home Feed Ad) -->
+<div class="manual-ad-container mb-8 text-center">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-2228289204702106"
+       data-ad-slot="2231432699"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -13,7 +24,6 @@ layout: default
       {% if post.image %}
         <img src="{{ post.image | relative_url }}" alt="{{ post.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
       {% else %}
-        <!-- 湲곕낯 ?몃꽕???대갚 -->
         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-200 text-gray-400 font-bold transition-transform duration-500 group-hover:scale-105">
           Read Post
         </div>
@@ -33,4 +43,3 @@ layout: default
   </article>
   {% endfor %}
 </div>
-
