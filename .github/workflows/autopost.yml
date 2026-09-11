@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y fonts-nanum fonts-roboto
-          pip install google-generativeai requests pytz pillow
+          pip install google-generativeai requests pytz pillow beautifulsoup4
 
       - name: Run Auto Poster
         env:
