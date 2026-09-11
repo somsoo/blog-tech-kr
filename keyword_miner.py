@@ -70,7 +70,7 @@ def get_golden_keyword_and_source():
     
     일반 서민과 독자들이 검색창에서 가장 간절히 찾는 '실용적이고 구체적인 핵심 황금 키워드' 1개(예: 2026 부모급여 신청방법, 디딤돌대출 금리조건 등)를 선별하세요.
     반드시 다음 JSON 형식으로만 반환하세요:
-    {"golden_keyword": "선정된 키워드"}
+    {{"golden_keyword": "선정된 키워드"}}
     """
     try:
         res = generate_with_retry(prompt, is_json=True)
